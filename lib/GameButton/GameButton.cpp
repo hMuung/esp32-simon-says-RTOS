@@ -1,8 +1,4 @@
-#pragma once
-#include <Arduino.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-
+// GameButton.cpp
 #include <GameButton.h>
 
 // Static shared pin
