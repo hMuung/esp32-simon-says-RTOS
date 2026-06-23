@@ -1,7 +1,10 @@
 #include <Arduino.h>
 
 
+// Hardware Pins
 const uint8_t buttonPins[] = {1, 3, 10, 2};
+const uint8_t ledPins[]    = {18, 8, 19, 9};
+#define SPEAKER_PIN 0
 
 
 void setup() {
