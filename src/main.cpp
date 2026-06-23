@@ -4,16 +4,22 @@
 
 // Hardware pin mappings
 const uint8_t buttonPins[] = {1, 3, 10, 2};
+const uint8_t ledPins[] = {18, 8, 19, 9};
 
 // Volatile state variables for ISR-to-main communication
 volatile int lastButton = -1;
 volatile uint32_t lastInterruptTime[] = {0, 0, 0, 0};
 
+// FreeRTOS timer array for leds
+TimerHandle_t ledTimers[4];
+
 // Software debounce interval in milliseconds
-const int bounceThreshold = 200;
+const int bounceThreshold = 150;
+const int ledFadeTime = 150;
 
 // Function prototypes
 void IRAM_ATTR handleButtonInterrupt(uint8_t);
+void ledOffCallback(TimerHandle_t xTimer);
 
 // Specific ISR wrappers to route hardware interrupts to the common handler
 void IRAM_ATTR button0ISR() { handleButtonInterrupt(0); }
@@ -23,11 +29,23 @@ void IRAM_ATTR button3ISR() { handleButtonInterrupt(3); }
 
 
 void setup() {
-  Serial.begin(115200);
 
   // Configure pins with internal pull-ups
-  for(int i{}; i < 4; i++) {
+  for (int i{}; i < 4; i++) {
     pinMode(buttonPins[i], INPUT_PULLUP);
+    pinMode(ledPins[i],OUTPUT);
+    digitalWrite(ledPins[i],LOW);
+  }
+
+  // Timers creation
+  for (int i{}; i < 4; i++) {
+    ledTimers[i] = xTimerCreate(
+      "ledTimer",
+      ledFadeTime,
+      pdFALSE,
+      (void*)i,
+      ledOffCallback
+    );
   }
 
   // Attach falling-edge hardware interrupts to each wrapper
@@ -37,13 +55,7 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(buttonPins[3]), button3ISR, FALLING); 
 }
 
-void loop() {
-  // Check for button presses from the ISR
-  if (lastButton > -1) {
-    Serial.println(lastButton);
-    lastButton = -1; // Reset flag after processing
-  }
-}
+void loop() {}
 
 // Core ISR debounces the input and registers the button press
 void IRAM_ATTR handleButtonInterrupt(uint8_t buttonIndex) {
@@ -53,5 +65,12 @@ void IRAM_ATTR handleButtonInterrupt(uint8_t buttonIndex) {
   if ((currentTime - lastInterruptTime[buttonIndex]) >= bounceThreshold) {
     lastInterruptTime[buttonIndex] = currentTime;
     lastButton = buttonIndex;
+    digitalWrite(ledPins[buttonIndex],HIGH);
+    xTimerStart( ledTimers[buttonIndex], 0);
   }
+}
+
+void ledOffCallback(TimerHandle_t xTimer) {
+  uint32_t button = (uint32_t) pvTimerGetTimerID(xTimer);
+  digitalWrite(ledPins[button],LOW);
 }
