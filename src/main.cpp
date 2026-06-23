@@ -1,18 +1,26 @@
 #include <Arduino.h>
 
-#define LED 19
+
+const uint8_t buttonPins[] = {1, 3, 10, 2};
+
 
 void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(115200);
-  Serial.println("Hello, ESP32-C3!");
 
-  pinMode(LED, OUTPUT);
+  Serial.begin(115200);
+
+  for(const auto &pin : buttonPins) {
+    pinMode(pin, INPUT_PULLUP);
+  }
+  
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
     
-  digitalWrite(LED, !digitalRead(LED));
-  delay(500); // this speeds up the simulation
+  for(const auto &button : buttonPins) {
+    if(!digitalRead(button)) {
+      Serial.println("button pressed");
+    }
+  }
+  delay(10);
+
 }
