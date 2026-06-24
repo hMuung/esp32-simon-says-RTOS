@@ -79,7 +79,7 @@ void SimonGame::turnOnAllLeds() {
     }
 }
 
-// Srtate machine function
+// State machine function
 void SimonGame::run() {
     for (;;) {
         switch (state) {
@@ -249,18 +249,18 @@ void SimonGame::handleGameOver() {
 
     turnOnAllLeds();
     sendSound(NOTE_DS5);
-    vTaskDelay(pdMS_TO_TICKS(250));
+    vTaskDelay(pdMS_TO_TICKS(150));
 
     turnOnAllLeds();
     sendSound(NOTE_DS5);
-    vTaskDelay(pdMS_TO_TICKS(250));
+    vTaskDelay(pdMS_TO_TICKS(150));
 
     turnOnAllLeds();
     sendSound(NOTE_CS5);
-    vTaskDelay(pdMS_TO_TICKS(250));
+    vTaskDelay(pdMS_TO_TICKS(150));
 
-    for (uint8_t i = 0; i < 10; i++) {
-        turnOnAllLeds();
+    turnOnAllLeds();
+    for (uint8_t i = 0; i < 5; i++) {
         for (int pitch = -10; pitch <= 10; pitch++) {
         sendSound(NOTE_C5 + pitch);
         vTaskDelay(pdMS_TO_TICKS(6));
