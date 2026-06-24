@@ -19,15 +19,16 @@ Display display(7,5,6);
 
 void setup() {
 
-  // BUzz pin initialization
+  // Buzz pin initialization
   GameButton::sharedSpeakerPin = 0;
   tone(GameButton::sharedSpeakerPin, 440, 1); 
 
-  // Solo necesitamos iterar e inicializar, el objeto hace el resto
+  // Initialize game buttons with their leds
   for (GameButton &button : buttons) {
       button.begin();
   }
 
+  // Initialize the two dispalys
   display.begin();
   display.showDash();
 
