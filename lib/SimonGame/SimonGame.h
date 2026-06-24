@@ -4,26 +4,33 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 #include <freertos/timers.h>
+#include <esp_random.h>
+
+#include <pitches.h>
 
 class SimonGame {
 private:
     QueueHandle_t buttonQueue;
-    QueueHandle_t outputQueue = nullptr;
     QueueHandle_t ledQueue;
     QueueHandle_t soundQueue;
     QueueHandle_t displayQueue;
 
     TimerHandle_t idleTimer;
 
+    static constexpr int gameTones[4] = {
+        NOTE_G3,
+        NOTE_C4,
+        NOTE_E4,
+        NOTE_G4
+    };
+
     static const int idleTimeout = 10000;
     static const int delayBtwSecuence = 200;
     static const int delayBfSecuence = 500;
-    static const int delayBtwBlinks = 100;
-    static const int blinkTimesBfNext = 2;
     static const int delayBfNextLevel = 500;
 
-    static const int idleScore = -2;
-    static const int gameOverScore = -1;
+    static const int idleScore = -1;
+    static const int gameOverScore = -2;
 
     static const int maxSequence = 99;
     uint8_t sequence[maxSequence];
@@ -45,13 +52,22 @@ private:
 
     uint8_t generateNextStep();
 
-    void sendOutput(uint8_t id);
-    void overLoadOutput(int times, int delayTime);
+    void sendLed(uint8_t id);
+    void sendSound(int freq);
     void sendScore(int score);
+    void turnOnAllLeds();
 
     void resetIdleTimer();
     void stopIdleTimer();
     void setIdleMode();
+
+    void handleIdle();
+    void handlePowerUp();
+    void handleStartGame();
+    void handleShowSequence();
+    void handleWaitInput();
+    void handleSuccess();
+    void handleGameOver();
 
     static void idleTimerCallback(TimerHandle_t xTimer);
 

@@ -23,19 +23,11 @@ class Display {
         static constexpr int DisplayOff = -1;
         static constexpr int DisplayDash = -2;
 
-        static constexpr uint8_t off = 0b00000000;
-        static constexpr uint8_t dash = 0b01000000;
+        static constexpr uint8_t off = 0b11111111;
+        static constexpr uint8_t dash = 0b10111111;
         static constexpr uint8_t digitTable[10] = {
-            0b00111111, // 0
-            0b00000110, // 1
-            0b01011011, // 2
-            0b01001111, // 3
-            0b01100110, // 4
-            0b01101101, // 5
-            0b01111101, // 6
-            0b00000111, // 7
-            0b01111111, // 8
-            0b01101111  // 9
+            0b11000000, 0b11111001, 0b10100100, 0b10110000, 0b10011001,
+            0b10010010, 0b10000010, 0b11111000, 0b10000000, 0b10010000,
         };
 
         // Sends two bytes to the shift registers
