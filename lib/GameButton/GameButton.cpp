@@ -54,7 +54,8 @@ void IRAM_ATTR GameButton::handleInterrupt() {
             
             digitalWrite(ledPin, HIGH);
             tone(GameButton::sharedSpeakerPin, toneFreq);
-
+            
+            //Start timer inside ISR 
             BaseType_t xHigherPriorityTaskWoken = pdFALSE;
             xTimerStartFromISR(feedbackOffTimer, &xHigherPriorityTaskWoken);
             if (xHigherPriorityTaskWoken) {
