@@ -1,36 +1,45 @@
 // GameButton.h
 #pragma once
 
+/*
+Module responsibility:
+    Handles a physical game button using an interrupt,
+    it debounces the signal and sends the button ID to a FreeRTOS queue.
+*/
+
 #include <Arduino.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 
 
 class GameButton {
+
     private:
-        uint8_t buttonPin;
-        uint8_t buttonId;
 
-        // Comunication Queue
-        QueueHandle_t eventQueue;
+        const uint8_t buttonPin;
+        const uint8_t buttonId;
 
-        // Debounce time
-        uint32_t lastInterruptTime;
+        QueueHandle_t eventQueue = nullptr;
 
-        // Class Constants
-        static const uint32_t bounceThreshold = 150;
+        volatile uint32_t lastInterruptTime = 0;
+        static constexpr uint32_t bounceThresholdMs = 150;
 
+        // static: required because attachInterruptArg expects a C-style callback
         static void IRAM_ATTR isrWrapper(void* arg);
+
+        // IRAM_ATTR: keeps ISR code in instruction RAM on ESP32
         void IRAM_ATTR handleInterrupt();
 
+
     public:
-        // Constructor declaration
-        GameButton(uint8_t btnPin, uint8_t id, QueueHandle_t queue);
+        // explicit: avoids accidental implicit construction
+        explicit GameButton(uint8_t btnPin, uint8_t id, QueueHandle_t queue);
 
-        // Method declarations
+        // delete: prevents copying an object attached to a hardware interrupt
+        GameButton(const GameButton&) = delete;
+        GameButton& operator=(const GameButton&) = delete;
+
         void begin();
-        uint8_t getButtonPin();
-        
-
+        uint8_t getButtonPin() const;
 };
 

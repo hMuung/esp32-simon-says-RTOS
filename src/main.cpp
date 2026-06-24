@@ -15,11 +15,11 @@ QueueHandle_t displayQueue;
 
 Display display(7, 5, 6);
 
-LedSound outputs[] = {
-    LedSound(18, NOTE_G3),
-    LedSound(8,  NOTE_C4),
-    LedSound(19, NOTE_E4),
-    LedSound(9,  NOTE_G4)
+LedFdbk outputs[] = {
+    LedFdbk(18, NOTE_G3),
+    LedFdbk(8,  NOTE_C4),
+    LedFdbk(19, NOTE_E4),
+    LedFdbk(9,  NOTE_G4)
 };
 
 GameButton buttons[] = {
@@ -59,7 +59,7 @@ void displayTask(void* pvParameters) {
 
 void setup() {
 
-    LedSound::sharedSpeakerPin = 0;
+    LedFdbk::sharedSpeakerPin = 0;
 
     buttonQueue = xQueueCreate(10, sizeof(uint8_t));
     outputQueue = xQueueCreate(10, sizeof(uint8_t));
