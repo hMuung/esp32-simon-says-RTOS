@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include <freertos/FreeRTOS.h>
-#include <freertos/timers.h> // TimerHandle_t
 
 
 class LedSound {

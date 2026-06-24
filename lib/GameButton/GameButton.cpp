@@ -1,13 +1,9 @@
 // GameButton.cpp
 #include "GameButton.h"
 
-// Static shared pin
-uint8_t GameButton::sharedSpeakerPin = 0;
-
 // Class Constructor
-GameButton::GameButton(uint8_t btnPin, uint8_t lPin, int freq)
-    : buttonPin(btnPin), ledPin(lPin), toneFreq(freq), 
-    lastInterruptTime(0), feedbackOffTimer(nullptr) {}
+GameButton::GameButton(uint8_t btnPin, uint8_t id, QueueHandle_t queue)
+    : buttonPin(btnPin), buttonId(id), eventQueue(queue), lastInterruptTime(0) {}
 
 
 // Initialize method
@@ -15,17 +11,6 @@ void GameButton::begin() {
 
     // Pin mode declaration
     pinMode(buttonPin,INPUT_PULLUP);
-    pinMode(ledPin,OUTPUT);
-    digitalWrite(ledPin,LOW);
-
-    // Timer creation
-    feedbackOffTimer = xTimerCreate(
-        "feedbackOffTimer",
-        pdMS_TO_TICKS(fadeTime),
-        pdFALSE, // one-shot
-        (void*)this, // timer identifier
-        timerCallback
-    );
 
     // Attacht interrupt
     attachInterruptArg(
@@ -37,44 +22,35 @@ void GameButton::begin() {
 
 }
 
-// Turn speaker and led off
-void GameButton::turnOff() {
-    digitalWrite(ledPin, LOW);
-    noTone(GameButton::sharedSpeakerPin);
-}
 
 // Interrupt handeling
 void IRAM_ATTR GameButton::handleInterrupt() {
     
     uint32_t currentTime = millis(); 
 
-        // Bounce software handeling
-        if ((currentTime - lastInterruptTime) >= bounceThreshold) {
-            lastInterruptTime = currentTime;
-            
-            digitalWrite(ledPin, HIGH);
-            tone(GameButton::sharedSpeakerPin, toneFreq);
-            
-            //Start timer inside ISR 
+    // Bounce software handling
+    if ((currentTime - lastInterruptTime) >= bounceThreshold) {
+        lastInterruptTime = currentTime;
+        
+        // Verify if Queue exist
+        if (eventQueue != nullptr) {
             BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-            xTimerStartFromISR(feedbackOffTimer, &xHigherPriorityTaskWoken);
+            
+            // Send button ID to interrupt Queue
+            xQueueSendFromISR(eventQueue, &buttonId, &xHigherPriorityTaskWoken);
+            
+            // If the task that awaited the queue has higher priority, forze context change
             if (xHigherPriorityTaskWoken) {
                 portYIELD_FROM_ISR();
             }
         }
-}
+    }
 
+}
 
 // ISR Wrapper
 void IRAM_ATTR GameButton::isrWrapper(void* arg) {
     // Cast argument back to GameButton instance
     GameButton* instance = static_cast<GameButton*>(arg);
     instance->handleInterrupt();
-}
-
-// Timer callback
-void GameButton::timerCallback(TimerHandle_t xTimer) {
-    // Get back instance using pvTimerGetTimerID
-    GameButton* instance = static_cast<GameButton*>(pvTimerGetTimerID(xTimer));
-    instance->turnOff();
 }
