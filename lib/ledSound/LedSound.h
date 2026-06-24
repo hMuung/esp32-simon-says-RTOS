@@ -6,7 +6,6 @@
 #include <freertos/timers.h>
 
 
-
 class LedSound {
     private:
         int toneFreq;

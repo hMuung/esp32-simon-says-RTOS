@@ -3,45 +3,62 @@
 #include <Arduino.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
-
+#include <freertos/timers.h>
 
 class SimonGame {
-    private:
-        QueueHandle_t buttonQueue;
-        QueueHandle_t outputQueue;
-        QueueHandle_t displayQueue;
+private:
+    QueueHandle_t buttonQueue;
+    QueueHandle_t outputQueue;
+    QueueHandle_t displayQueue;
 
-        static const int delayBtwSecuence = 200;
-        static const int delayBfSecuence = 500;
-        static const int delayBfNextLevel = 500;
+    TimerHandle_t idleTimer;
 
-        static const int maxSequence = 99;
-        uint8_t sequence[maxSequence];
+    static const int idleTimeout = 5000;
+    static const int delayBtwSecuence = 200;
+    static const int delayBfSecuence = 500;
+    static const int delayBtwBlinks = 100;
+    static const int blinkTimesBfNext = 2;
+    static const int delayBfNextLevel = 500;
 
-        uint8_t level;
-        uint8_t inputIndex;
+    static const int idleScore = -2;
+    static const int gameOverScore = -1;
 
-        enum GameState {
-            IDLE,
-            START_GAME,
-            SHOW_SEQUENCE,
-            WAIT_INPUT,
-            SUCCESS,
-            GAME_OVER
-        };
+    static const int maxSequence = 99;
+    uint8_t sequence[maxSequence];
 
-        GameState state;
+    uint8_t level;
+    uint8_t inputIndex;
 
-        uint8_t generateNextStep();
-        void sendOutput(uint8_t id);
-        void sendScore(int score);
+    enum GameState {
+        IDLE,
+        POWER_UP,
+        START_GAME,
+        SHOW_SEQUENCE,
+        WAIT_INPUT,
+        SUCCESS,
+        GAME_OVER
+    };
 
-    public:
-        SimonGame(
-            QueueHandle_t buttonQueue,
-            QueueHandle_t outputQueue,
-            QueueHandle_t displayQueue
-        );
+    volatile GameState state;
 
-        void run();
+    uint8_t generateNextStep();
+
+    void sendOutput(uint8_t id);
+    void overLoadOutput(int times, int delayTime);
+    void sendScore(int score);
+
+    void resetIdleTimer();
+    void stopIdleTimer();
+    void setIdleMode();
+
+    static void idleTimerCallback(TimerHandle_t xTimer);
+
+public:
+    SimonGame(
+        QueueHandle_t buttonQueue,
+        QueueHandle_t outputQueue,
+        QueueHandle_t displayQueue
+    );
+
+    void run();
 };

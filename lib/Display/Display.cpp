@@ -21,12 +21,12 @@ int Display::getDisplayedNumber() {
 void Display::showNumber(int number) {
 
     if (number == -1) {
-        turnOff();
+        showDash();
         return;
     }
 
     if (number == -2) {
-        showDash();
+        turnOff();
         return;
     }
 

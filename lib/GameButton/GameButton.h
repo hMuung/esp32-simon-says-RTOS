@@ -21,6 +21,7 @@ class GameButton {
         static const uint32_t bounceThreshold = 150;
 
         static void IRAM_ATTR isrWrapper(void* arg);
+        void IRAM_ATTR handleInterrupt();
 
     public:
         // Constructor declaration
@@ -29,7 +30,7 @@ class GameButton {
         // Method declarations
         void begin();
         uint8_t getButtonPin();
-        void IRAM_ATTR handleInterrupt();
+        
 
 };
 

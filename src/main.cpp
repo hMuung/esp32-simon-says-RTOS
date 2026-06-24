@@ -77,8 +77,8 @@ void setup() {
 
     game = new SimonGame(buttonQueue, outputQueue, displayQueue);
 
-    xTaskCreate(gameTask,    "GameTask",    4096, NULL, 2, NULL);
-    xTaskCreate(outputTask,  "OutputTask",  2048, NULL, 1, NULL);
+    xTaskCreate(gameTask, "GameTask", 4096, NULL, 2, NULL);
+    xTaskCreate(outputTask, "OutputTask", 2048, NULL, 1, NULL);
     xTaskCreate(displayTask, "DisplayTask", 2048, NULL, 1, NULL);
 }
 
