@@ -29,10 +29,7 @@ void setup() {
   }
 
   display.begin();
-
   display.showDash();
-  delay(1000);
-  display.showNumber(15);
 
 }
 
