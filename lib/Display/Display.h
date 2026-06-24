@@ -19,6 +19,7 @@ class Display {
             0b10000000, 0b10010000
         };
         static constexpr uint8_t dash = 0b10111111;
+        static constexpr uint8_t off = 0b11111111;
 
         void writeRegister(uint8_t highDigitByte, uint8_t lowDigitByte);
 
@@ -30,5 +31,6 @@ class Display {
         void begin();
         void showNumber(int number);
         void showDash();
+        void turnOff();
         int getDisplayedNumber();
 };

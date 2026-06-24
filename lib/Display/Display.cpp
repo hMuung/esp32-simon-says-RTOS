@@ -19,6 +19,17 @@ int Display::getDisplayedNumber() {
 }
 
 void Display::showNumber(int number) {
+
+    if (number == -1) {
+        turnOff();
+        return;
+    }
+
+    if (number == -2) {
+        showDash();
+        return;
+    }
+
     // Bounds check (0-99)
     if (number < 0 || number > 99) {
         return;
@@ -34,10 +45,14 @@ void Display::showNumber(int number) {
 }
 
 void Display::showDash() {
-    currentNumber = -1; // Indicate dash
+    currentNumber = -2; // Indicate dash
     writeRegister(dash, dash);
 }
 
+void Display::turnOff() {
+    currentNumber = -1; // Indicate off
+    writeRegister(off, off);
+}
 
 void Display::writeRegister(uint8_t highDigitByte, uint8_t lowDigitByte) {
     digitalWrite(latchPin, LOW);
