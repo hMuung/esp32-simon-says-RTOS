@@ -1,58 +1,66 @@
 // LedFdbk.cpp
 #include "LedFdbk.h"
 
-// Class Constructor
-LedFdbk::LedFdbk(uint8_t lPin)
-    : ledPin(lPin), feedbackOffTimer(nullptr) {}
 
+// Constructor stores the fixed LED pin
+LedFdbk::LedFdbk(uint8_t lPin) : ledPin(lPin) {}
 
-// Initialize method
-void LedFdbk::begin() {
-
-    // Pin mode declaration
-    pinMode(ledPin,OUTPUT);
-    digitalWrite(ledPin,LOW);
-
-    // Timer creation
-    feedbackOffTimer = xTimerCreate(
-        "feedbackOffTimer",
-        pdMS_TO_TICKS(fadeTime),
-        pdFALSE, // one-shot
-        (void*)this, // timer identifier
-        timerCallback
-    );
-
+// Destructor releases the timer resource
+LedFdbk::~LedFdbk() {
+    if (feedbackOffTimer != nullptr) {
+        xTimerDelete(feedbackOffTimer, 0);
+        feedbackOffTimer = nullptr;
+    }
 }
 
-// Turn speaker and led on and start timer
+// Initializes GPIO and creates the one-shot timer
+void LedFdbk::begin() {
+    pinMode(ledPin, OUTPUT);
+    setLed(false);
+
+    feedbackOffTimer = xTimerCreate(
+        "LedFdbkOff",
+        pdMS_TO_TICKS(fadeTimeMs),
+        pdFALSE,
+        static_cast<void*>(this),
+        timerCallback
+    );
+}
+
+// Centralizes LED writes
+void LedFdbk::setLed(bool state) {
+    digitalWrite(ledPin, state ? HIGH : LOW);
+}
+
+// Turns LED on and restarts the auto-off timer
 void LedFdbk::turnOn() {
-    //Start timer
+    setLed(true);
+
     if (feedbackOffTimer != nullptr) {
-        digitalWrite(ledPin, HIGH);
+        xTimerStop(feedbackOffTimer, 0);
         xTimerStart(feedbackOffTimer, 0);
     }
 }
 
-// Turn led off manually
+// Manual off also cancels pending auto-off
 void LedFdbk::turnOff() {
-    // Turn off led
-    digitalWrite(ledPin, LOW);
-    
-    // stop Timer
+    setLed(false);
+
     if (feedbackOffTimer != nullptr) {
         xTimerStop(feedbackOffTimer, 0);
     }
 }
 
-// Turn led off after time expires
+// Timer-expired off does not stop the already expired timer
 void LedFdbk::timerExpired() {
-    // Turn off led
-    digitalWrite(ledPin, LOW);
+    setLed(false);
 }
 
-// Timer callback
+// Static callback bridges FreeRTOS C callback to C++ instance
 void LedFdbk::timerCallback(TimerHandle_t xTimer) {
-    // Get back instance using pvTimerGetTimerID
-    LedFdbk* instance = static_cast<LedFdbk*>(pvTimerGetTimerID(xTimer));
-    instance->timerExpired();
+    auto* instance = static_cast<LedFdbk*>(pvTimerGetTimerID(xTimer));
+
+    if (instance != nullptr) {
+        instance->timerExpired();
+    }
 }

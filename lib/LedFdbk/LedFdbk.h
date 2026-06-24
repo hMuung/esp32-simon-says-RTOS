@@ -1,31 +1,45 @@
 // LedFdbk.h
 #pragma once
 
+/* 
+Module responsibility:
+    Provides short LED feedback pulses using a FreeRTOS one-shot timer,
+    the class owns the LED pin and its timer
+*/
+
 #include <Arduino.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/timers.h>
 
 
 class LedFdbk {
+
     private:
-        uint8_t ledPin;
+        
+        const uint8_t ledPin;
 
-        TimerHandle_t feedbackOffTimer;
+        TimerHandle_t feedbackOffTimer = nullptr;
+        static constexpr TickType_t fadeTimeMs = 150;
 
-        // Class Constants
-        static const uint32_t fadeTime = 150;
+        void setLed(bool state);
 
-        static void timerCallback(TimerHandle_t xTimer);
         void timerExpired();
+        static void timerCallback(TimerHandle_t xTimer);
+
 
     public:
-        // Constructor declaration
-        LedFdbk(uint8_t lPin);
 
-        // Method declarations
+        // explicit: avoids accidental implicit conversions from uint8_t
+        explicit LedFdbk(uint8_t lPin);
+
+        // Destructor releases the FreeRTOS timer
+        ~LedFdbk();
+
+        // delete: prevent copying a class that owns a timer handle
+        LedFdbk(const LedFdbk&) = delete;
+        LedFdbk& operator=(const LedFdbk&) = delete;
+
         void begin();
         void turnOn();
         void turnOff();
-
 };
-

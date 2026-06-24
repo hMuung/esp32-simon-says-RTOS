@@ -1,58 +1,63 @@
 // SoundFdbk.cpp
 #include "SoundFdbk.h"
 
-// Class Constructor
-SoundFdbk::SoundFdbk(uint8_t bzrPin)
-    : buzzerPin(bzrPin), feedbackOffTimer(nullptr) {}
 
+// Constructor stores the fixed buzzer pin
+SoundFdbk::SoundFdbk(uint8_t bzrPin) : buzzerPin(bzrPin) {}
 
-// Initialize method
-void SoundFdbk::begin() {
-
-    // Pin mode declaration
-    pinMode(buzzerPin,OUTPUT);
-    digitalWrite(buzzerPin,LOW);
-
-    // Timer creation
-    feedbackOffTimer = xTimerCreate(
-        "feedbackOffTimer",
-        pdMS_TO_TICKS(fadeTime),
-        pdFALSE, // one-shot
-        (void*)this, // timer identifier
-        timerCallback
-    );
-
+// Destructor releases the timer resource
+SoundFdbk::~SoundFdbk() {
+    if (feedbackOffTimer != nullptr) {
+        xTimerDelete(feedbackOffTimer, 0);
+        feedbackOffTimer = nullptr;
+    }
 }
 
-// Turn buzzer on and start timer
+// Initializes GPIO and creates the one-shot timer
+void SoundFdbk::begin() {
+    pinMode(buzzerPin, OUTPUT);
+    digitalWrite(buzzerPin, LOW);
+
+    feedbackOffTimer = xTimerCreate(
+        "SoundFdbkOff",
+        pdMS_TO_TICKS(fadeTimeMs),
+        pdFALSE,
+        static_cast<void*>(this),
+        timerCallback
+    );
+}
+
+// Plays tone and restarts the auto-off timer
 void SoundFdbk::playSound(int freq) {
-    //Start timer
+    tone(buzzerPin, freq);
+
     if (feedbackOffTimer != nullptr) {
-        tone(buzzerPin,freq);
+        xTimerStop(feedbackOffTimer, 0);
         xTimerStart(feedbackOffTimer, 0);
     }
 }
 
-// Stop buzzer sound manually
+// Manual stop also cancels pending auto-stop
 void SoundFdbk::stopSound() {
-    // Stop sound
     noTone(buzzerPin);
+    digitalWrite(buzzerPin, LOW);
 
-    // Stop timer
     if (feedbackOffTimer != nullptr) {
         xTimerStop(feedbackOffTimer, 0);
     }
 }
 
-// Stop buzzer sound after time expires
+// Timer-expired stop does not stop the already expired timer
 void SoundFdbk::timerExpired() {
-    // Stop sound
     noTone(buzzerPin);
+    digitalWrite(buzzerPin, LOW);
 }
 
-// Timer callback
+// Static callback bridges FreeRTOS C callback to C++ instance
 void SoundFdbk::timerCallback(TimerHandle_t xTimer) {
-    // Get back instance using pvTimerGetTimerID
-    SoundFdbk* instance = static_cast<SoundFdbk*>(pvTimerGetTimerID(xTimer));
-    instance->timerExpired();
+    auto* instance = static_cast<SoundFdbk*>(pvTimerGetTimerID(xTimer));
+
+    if (instance != nullptr) {
+        instance->timerExpired();
+    }
 }
