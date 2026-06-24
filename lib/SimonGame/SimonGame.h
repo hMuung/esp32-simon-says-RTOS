@@ -13,7 +13,7 @@ private:
 
     TimerHandle_t idleTimer;
 
-    static const int idleTimeout = 5000;
+    static const int idleTimeout = 10000;
     static const int delayBtwSecuence = 200;
     static const int delayBfSecuence = 500;
     static const int delayBtwBlinks = 100;

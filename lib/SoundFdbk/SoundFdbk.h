@@ -1,4 +1,4 @@
-// LedSound.h
+// SoundFdbk.h
 #pragma once
 
 #include <Arduino.h>
@@ -6,10 +6,9 @@
 #include <freertos/timers.h>
 
 
-class LedSound {
+class SoundFdbk {
     private:
-        int toneFreq;
-        uint8_t ledPin;
+        uint8_t buzzerPin;
 
         TimerHandle_t feedbackOffTimer;
 
@@ -17,18 +16,16 @@ class LedSound {
         static const uint32_t fadeTime = 150;
 
         static void timerCallback(TimerHandle_t xTimer);
+        void timerExpired();
 
     public:
         // Constructor declaration
-        LedSound(uint8_t lPin, int freq);
-
-        // Shared speakerPin
-        static uint8_t sharedSpeakerPin;
+        SoundFdbk(uint8_t bzrPin);
 
         // Method declarations
         void begin();
-        void turnOn();
-        void turnOff();
+        void playSound(int freq);
+        void stopSound();
 
 };
 
