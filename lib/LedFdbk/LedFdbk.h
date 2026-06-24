@@ -29,8 +29,7 @@ class LedFdbk {
 
     public:
 
-        // explicit: avoids accidental implicit conversions from uint8_t
-        explicit LedFdbk(uint8_t lPin);
+        LedFdbk(uint8_t lPin);
 
         // Destructor releases the FreeRTOS timer
         ~LedFdbk();

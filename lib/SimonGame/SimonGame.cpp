@@ -2,12 +2,14 @@
 
 SimonGame::SimonGame(
     QueueHandle_t btnQueue,
-    QueueHandle_t outQueue,
-    QueueHandle_t dispQueue
+    QueueHandle_t ldQueue, 
+    QueueHandle_t sndQueue,
+    QueueHandle_t dspQueue
 ) :
     buttonQueue(btnQueue),
-    outputQueue(outQueue),
-    displayQueue(dispQueue),
+    ledQueue(ldQueue),
+    soundQueue(sndQueue),
+    displayQueue(dspQueue),
     idleTimer(nullptr),
     level(0),
     inputIndex(0),

@@ -8,7 +8,9 @@
 class SimonGame {
 private:
     QueueHandle_t buttonQueue;
-    QueueHandle_t outputQueue;
+    QueueHandle_t outputQueue = nullptr;
+    QueueHandle_t ledQueue;
+    QueueHandle_t soundQueue;
     QueueHandle_t displayQueue;
 
     TimerHandle_t idleTimer;
@@ -55,9 +57,10 @@ private:
 
 public:
     SimonGame(
-        QueueHandle_t buttonQueue,
-        QueueHandle_t outputQueue,
-        QueueHandle_t displayQueue
+        QueueHandle_t btnQueue,
+        QueueHandle_t ldQueue, 
+        QueueHandle_t sndQueue,
+        QueueHandle_t dspQueue
     );
 
     void run();

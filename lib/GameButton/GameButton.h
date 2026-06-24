@@ -18,8 +18,11 @@ class GameButton {
 
         const uint8_t buttonPin;
         const uint8_t buttonId;
+        const int frequency;
 
-        QueueHandle_t eventQueue = nullptr;
+        QueueHandle_t buttonQueue = nullptr;
+        QueueHandle_t ledQueue = nullptr;
+        QueueHandle_t soundQueue = nullptr;
 
         volatile uint32_t lastInterruptTime = 0;
         static constexpr uint32_t bounceThresholdMs = 150;
@@ -32,14 +35,22 @@ class GameButton {
 
 
     public:
-        // explicit: avoids accidental implicit construction
-        explicit GameButton(uint8_t btnPin, uint8_t id, QueueHandle_t queue);
+        
+        GameButton(
+            uint8_t btnPin,
+            uint8_t id,
+            int freq,
+            QueueHandle_t buttonQueue = nullptr,
+            QueueHandle_t ldQueue = nullptr,
+            QueueHandle_t sndQueue = nullptr
+        );
 
         // delete: prevents copying an object attached to a hardware interrupt
         GameButton(const GameButton&) = delete;
         GameButton& operator=(const GameButton&) = delete;
 
         void begin();
+        void setQueues(QueueHandle_t btnQueue, QueueHandle_t ldQueue, QueueHandle_t sndQueue);
         uint8_t getButtonPin() const;
 };
 
