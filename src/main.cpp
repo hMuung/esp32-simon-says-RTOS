@@ -4,6 +4,7 @@
 
 #include <pitches.h>
 #include <GameButton.h>
+#include <Display.h>
 
 // GameButton object array
 GameButton buttons[] = {
@@ -13,6 +14,8 @@ GameButton buttons[] = {
     GameButton(2,  9,  NOTE_G4)
 };
 
+// Dispaly object
+Display display(7,5,6);
 
 void setup() {
 
@@ -24,6 +27,12 @@ void setup() {
   for (GameButton &button : buttons) {
       button.begin();
   }
+
+  display.begin();
+
+  display.showDash();
+  delay(1000);
+  display.showNumber(15);
 
 }
 
