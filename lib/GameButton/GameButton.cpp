@@ -22,7 +22,6 @@ void GameButton::begin() {
 
 }
 
-
 // Interrupt handeling
 void IRAM_ATTR GameButton::handleInterrupt() {
     
@@ -46,6 +45,11 @@ void IRAM_ATTR GameButton::handleInterrupt() {
         }
     }
 
+}
+
+// Return buttons Pin
+uint8_t GameButton::getButtonPin() {
+    return buttonPin;
 }
 
 // ISR Wrapper

@@ -27,6 +27,7 @@ class GameButton {
 
         // Method declarations
         void begin();
+        uint8_t getButtonPin();
         void IRAM_ATTR handleInterrupt();
 
 };
