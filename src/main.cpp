@@ -5,78 +5,106 @@
 
 #include "pitches.h"
 #include "GameButton.h"
-#include "LedSound.h"
+#include "LedFdbk.h"
+#include "SoundFdbk.h"
 #include "Display.h"
+#include "SimonGame.h"
 
-// FreeRTOS variables
+
 QueueHandle_t buttonQueue;
-TaskHandle_t testTaskHandle;
+QueueHandle_t ledQueue;
+QueueHandle_t soundQueue;
+QueueHandle_t displayQueue;
 
-// Display object
-Display display(7, 5, 6); // Latch, Data, Clock
 
-// Output arrays (LEDs and sound)
-LedSound outputs[] = {
-    LedSound(18, NOTE_G3), // ID 0
-    LedSound(8,  NOTE_C4), // ID 1
-    LedSound(19, NOTE_E4), // ID 2
-    LedSound(9,  NOTE_G4)  // ID 3
+Display display(7, 5, 6);
+SoundFdbk buzzer(0);
+
+LedFdbk leds[] {{18}, {8}, {19}, {9}};
+
+GameButton buttons[] {
+    {1, 0, NOTE_G3},
+    {3, 1, NOTE_C4},
+    {10, 2, NOTE_E4},
+    {2, 3, NOTE_G4},
 };
 
-// Input arrays (buttons) queue is assigned on setup
-GameButton buttons[] = {
-    GameButton(1,  0, nullptr), 
-    GameButton(3,  1, nullptr), 
-    GameButton(10, 2, nullptr), 
-    GameButton(2,  3, nullptr)  
-};
+SimonGame* game = nullptr;
 
-// Test task
-void testTask(void *pvParameters) {
-    uint8_t pressedButtonId;
-    
-    for (;;) {
-        // Waits for Queue
-        if (xQueueReceive(buttonQueue, &pressedButtonId, portMAX_DELAY) == pdTRUE) {
-            
-            // Turn on led and sound
-            outputs[pressedButtonId].turnOn();
-        
-            // Show ID on display
-            display.showNumber(pressedButtonId);
-        }
-    }
-}
+// Task prototipes
+void gameTask(void* pvParameters);
+void ledTask(void* pvParameters) ;
+void soundTask(void* pvParameters);
+void displayTask(void* pvParameters);
 
-// Initial setup
+
+// Initialization
 void setup() {
 
-    // Initialize buzzer pin
-    LedSound::sharedSpeakerPin = 0;
-
-    // Build freeRTOS queue with capaciti for 10 elements and size of 1 byte for ID
     buttonQueue = xQueueCreate(10, sizeof(uint8_t));
+    ledQueue = xQueueCreate(10, sizeof(uint8_t));
+    soundQueue = xQueueCreate(10, sizeof(int));
+    displayQueue = xQueueCreate(5, sizeof(int));
 
-    // Re-assing queue to bottons and initialize hardware
-    for (int i = 0; i < 4; i++) {
-        buttons[i] = GameButton(buttons[i].getButtonPin(), i, buttonQueue);
-        buttons[i].begin();
-        outputs[i].begin();
-    }
-
+    buzzer.begin();
     display.begin();
     display.showDash();
 
-    // Build test task
-    xTaskCreate(
-        testTask,          
-        "TestLogicTask",   
-        2048,              
-        NULL,              
-        1,                 
-        &testTaskHandle    
-    );
+    // Led and Buttons initialization
+    for (int i = 0; i < 4; i++) {
+        buttons[i].setQueues(buttonQueue,ledQueue,soundQueue);
+        buttons[i].begin();
+
+        leds[i].begin();
+    }
+
+    game = new SimonGame(buttonQueue, ledQueue, soundQueue, displayQueue); 
+
+    xTaskCreate(gameTask, "gameTask", 4096, NULL, 2, NULL);
+    xTaskCreate(ledTask, "ledTask", 2048, NULL, 1, NULL);
+    xTaskCreate(soundTask, "soundTask", 2048, NULL, 1, NULL);
+    xTaskCreate(displayTask, "DisplayTask", 2048, NULL, 1, NULL);
 }
 
 
 void loop() {}
+
+// Game logic task
+void gameTask(void* pvParameters) {
+    game->run();
+}
+
+// Led turn on-off task
+void ledTask(void* pvParameters) {
+    uint8_t id{};
+
+    for (;;) {
+        if (xQueueReceive(ledQueue, &id, portMAX_DELAY) == pdTRUE) {
+            if (id < 4) {
+                leds[id].turnOn();
+            }
+        }
+    }
+}
+
+// Sound on-off task
+void soundTask(void* pvParameters) {
+    int freq{};
+
+    for (;;) {
+        if (xQueueReceive(soundQueue, &freq, portMAX_DELAY) == pdTRUE) {
+                buzzer.playSound(freq);
+        }
+    }
+}
+
+// Display task
+void displayTask(void* pvParameters) {
+    int score{};
+
+    for (;;) {
+        if (xQueueReceive(displayQueue, &score, portMAX_DELAY) == pdTRUE) {
+            display.showNumber(score);
+        }
+    }
+}
